@@ -56,3 +56,7 @@ def test_ko_not_round_start():
     frame = cv2.imread("assets/test_images/ko_02.png")
     round_start.set_frame(frame)
     assert not round_start.is_round_start_screen()
+
+    frame = cv2.imread("assets/test_images/kimberly.png")
+    round_start.set_frame(frame)
+    assert not round_start.is_round_start_screen()
