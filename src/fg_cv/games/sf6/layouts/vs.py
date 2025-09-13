@@ -69,7 +69,7 @@ layout = {
         "p1_legend": {"x": 81, "y": 969, "w": 78, "h": 31, "colors": LEGEND_COLORS},
         "p2_legend": {"x": 1750, "y": 969, "w": 78, "h": 31, "colors": LEGEND_COLORS},
     },
-    "fixed_colors": [
+    "expected_colors": [
         {"x": 900, "y": 297, "color": "#a100fd"},
         {"x": 1020, "y": 434, "color": "#a905fe"},
         {"x": 723, "y": 797, "color": "#ed0dff"},
@@ -82,4 +82,5 @@ layout = {
         {"x": 912, "y": 299, "color": "#bf00ff"},
         {"x": 842, "y": 296, "color": "#b400fc"},
     ],
+    "threshold": 2,
 }
