@@ -37,7 +37,7 @@ class VsScreenExtractor:
 
         count: int = 0
 
-        for color in self.layout["fixed_colors"]:
+        for color in self.layout["expected_colors"]:
             if self.factor == 1:
                 pixel_color = self.frame[color["y"], color["x"]]
             else:
@@ -50,7 +50,7 @@ class VsScreenExtractor:
             if CvHelper.rgb_similarity(pixel_color, target_bgr) >= 0.9:
                 count += 1
 
-        return count > 1
+        return count > self.layout["threshold"]
 
     def extract_text(self):
         if self.frame is None:
