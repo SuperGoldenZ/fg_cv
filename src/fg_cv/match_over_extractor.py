@@ -37,7 +37,7 @@ class MatchOverExtractor:
 
         count: int = 0
 
-        for color in self.layout["fixed_colors"]:
+        for color in self.layout["expected_colors"]:
             if self.factor == 1:
                 pixel_color = self.frame[color["y"], color["x"]]
             else:
@@ -50,4 +50,4 @@ class MatchOverExtractor:
             if CvHelper.rgb_similarity(pixel_color, target_bgr) >= 0.95:
                 count += 1
 
-        return count > 5
+        return count >= self.layout["threshold"]
