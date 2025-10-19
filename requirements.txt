@@ -3,3 +3,4 @@ pytest
 opencv-python
 pillow
 pytesseract
+openai
