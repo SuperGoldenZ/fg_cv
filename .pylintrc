@@ -1,0 +1,9 @@
+[TYPECHECK]
+generated-members=cv2.*,shape
+ignored-classes=Resource
+
+[MASTER]
+init-hook=
+    import sys, os;
+    sys.path.insert(0, os.path.abspath("../src"));
+    sys.path.insert(0, os.path.abspath("../fg_cv/src"))
