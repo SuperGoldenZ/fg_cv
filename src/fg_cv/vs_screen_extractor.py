@@ -16,6 +16,7 @@ class VsScreenExtractor:
         self.frame = None
         self.layout = importlib.import_module(f"fg_cv.games.{game}.layouts.vs").layout
         self.cv_helper = CvHelper()
+        self.game = game
 
     def set_frame(self, frame) -> None:
         self.frame = frame
@@ -64,4 +65,19 @@ class VsScreenExtractor:
                 "p2_character": "n/a",
             }
 
-        return self.cv_helper.ocr_from_blocks(self.frame, self.layout["ocr_blocks"])
+        result = self.cv_helper.ocr_from_blocks(self.frame, self.layout["ocr_blocks"])
+        if self.game == "sf6" and "LEGEND" in result["p1_class"].upper():
+            result["p1_class"] = "LEGEND"
+        if self.game == "sf6" and "LEGEND" in result["p2_class"].upper():
+            result["p2_class"] = "LEGEND"
+
+        result["p1_class"] = result["p1_class"].upper()
+        result["p2_class"] = result["p2_class"].upper()
+
+        if self.game == "sf6" and not "LEGEND" in result["p1_class"]:
+            result["p1_rank"] = ""
+
+        if self.game == "sf6" and not "LEGEND" in result["p2_class"]:
+            result["p2_rank"] = ""
+
+        return result

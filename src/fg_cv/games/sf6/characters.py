@@ -1,0 +1,4 @@
+characters = [
+    "BLANKA",
+    "CHUN-LI"
+]

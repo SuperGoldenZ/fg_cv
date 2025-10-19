@@ -47,6 +47,8 @@ class RoundStartScreenExtractor:
             if CvHelper.rgb_similarity(pixel_color, target_bgr) >= 0.91:
                 count += 1
 
+        ngcount = 0
+        
         for color in self.layout["unexpected_colors"]:
             if self.factor == 1:
                 pixel_color = self.frame[color["y"], color["x"]]
@@ -56,10 +58,13 @@ class RoundStartScreenExtractor:
                 ]
 
             target_bgr = CvHelper.hex_to_bgr(color["color"])
-
+        
             if CvHelper.rgb_similarity(pixel_color, target_bgr) >= 0.90:
-                self.frame = None
-                return False
+                ngcount += 1
+                
+        if (ngcount >= 2):
+            self.frame = None
+            return False
 
         self.frame = None
         return count >= 5
