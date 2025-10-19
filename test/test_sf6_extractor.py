@@ -31,19 +31,22 @@ def test_vs_screen_ocr_1():
     assert text["p2_ringname"] == "路易十二" or text["p2_ringname"] == "路易十三"
     assert text["p1_legend"] == "85th"
     assert text["p2_legend"] == "137th"
+    assert "LEGEND" in text["p1_class"].upper()
+    assert "LEGEND" in text["p2_class"].upper()
 
 
 def test_vs_screen_ocr_2():
     vs = VsScreenExtractor(game="sf6")
     frame = cv2.imread("assets/test_images/blanka_vs_chun_li.png")
     vs.set_frame(frame)
-    text = vs.extract_text()
-    print(text)
+    text = vs.extract_text()    
     assert text["p1_character"] == "BLANKA"
     assert text["p2_character"] == "CHUN-LI"
     assert text["p1_ringname"] == "プロミネンスリボルト"
     assert text["p2_ringname"] == "Mniki"
-
+    assert text["p1_class"] ==  "MASTER"
+    assert text["p2_class"] ==  "HIGH MASTER"
+    
 
 def test_is_match_over():
     mo = MatchOverExtractor(game="sf6")

@@ -9,10 +9,16 @@ from fg_cv.vs_screen_extractor import VsScreenExtractor
 from fg_cv.match_over_extractor import MatchOverExtractor
 
 match_over_test_data = [
+    "assets/test_images/sf6/match_over_07.png",
+    "assets/test_images/sf6/match_over_06.png",
+    "assets/test_images/sf6/match_over_05.png",
+    "assets/test_images/sf6/match_over_04.png",
+    "assets/test_images/sf6/match_over_03.png",
     "assets/test_images/sf6/match_over_01.png",
     "assets/test_images/sf6/match_over_02.png",
     "assets/test_images/match_over.png",
     "assets/test_images/match_over_02.png",
+    "assets/test_images/sf6/match_over_02.png",
 ]
 
 
