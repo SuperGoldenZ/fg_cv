@@ -14,7 +14,7 @@ class CvHelper:
     def ocr_with_openai(self, image_roi):
         if self.openai_client is None:
             self.openai_client = OpenAI(
-                api_key=""
+                api_key="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"
             )
 
         # Encode ROI as PNG in memory
@@ -78,12 +78,6 @@ class CvHelper:
             return ""
 
         return response.choices[0].message.content
-
-    @staticmethod
-    def hex_to_bgr(hex_color):
-        hex_color = hex_color.lstrip("#")
-        # Convert hex to RGB, then reverse to BGR
-        return tuple(int(hex_color[i : i + 2], 16) for i in (4, 2, 0))
 
     @staticmethod
     def rgb_similarity(rgb1, rgb2):
@@ -219,6 +213,7 @@ class CvHelper:
 
     def ocr_from_blocks(self, image, ocr_blocks, method="openai"):
         results = {}
+        text: str = None
 
         for block_name, block in ocr_blocks.items():
             results[block_name] = []
@@ -233,8 +228,9 @@ class CvHelper:
 
         return results
 
+    @staticmethod
     def ocr_from_block(roi, block, chars, threshold=5):
-        text = "0"
+        text: str = "0"
 
         text = CvHelper.ocr_from_pytesseract(roi, block, chars, threshold=threshold)
 
