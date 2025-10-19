@@ -14,7 +14,7 @@ class CvHelper:
     def ocr_with_openai(self, image_roi):
         if self.openai_client is None:
             self.openai_client = OpenAI(
-                api_key="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"
+                api_key=None
             )
 
         # Encode ROI as PNG in memory
