@@ -91,6 +91,11 @@ class CvHelper:
         r1, g1, b1 = rgb1
         r2, g2, b2 = rgb2
 
+        # *** CRITICAL FIX: Convert to a signed integer type (e.g., standard int) ***
+        # This prevents numpy's uint8 from underflowing when subtracting a larger value
+        r1, g1, b1 = int(r1), int(g1), int(b1)
+        r2, g2, b2 = int(r2), int(g2), int(b2)
+
         # Calculate Euclidean distance
         distance = math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2)
 
