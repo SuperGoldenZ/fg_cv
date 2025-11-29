@@ -8,14 +8,16 @@ import base64
 
 
 class CvHelper:
+    API_KEY = None
+    with open(".openaikey", "r") as file:
+        API_KEY = file.read()
+
     def __init__(self):
         self.openai_client = None
 
     def ocr_with_openai(self, image_roi):
         if self.openai_client is None:
-            self.openai_client = OpenAI(
-                api_key=None
-            )
+            self.openai_client = OpenAI(api_key=CvHelper.API_KEY)
 
         # Encode ROI as PNG in memory
         _, buffer = cv2.imencode(".png", image_roi)
