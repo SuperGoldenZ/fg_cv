@@ -5,12 +5,16 @@ import cv2
 import numpy as np
 from openai import OpenAI
 import base64
+import os
 
 
 class CvHelper:
     API_KEY = None
-    with open(".openaikey", "r") as file:
-        API_KEY = file.read()
+    if os.path.isfile(".openaikey"):
+        with open(".openaikey", "r") as file:
+            API_KEY = file.read()
+    else:
+        print("WARN: .openaikey does not exist")
 
     def __init__(self):
         self.openai_client = None
