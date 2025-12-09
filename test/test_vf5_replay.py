@@ -25,3 +25,23 @@ def test_replay_over_return():
 
     frame = cv2.imread(filename)
     assert cv.is_match(frame)
+
+
+def test_replay_over_return_no():
+    cv: FlexibleCv = FlexibleCv("vf5-replay-menu", "replay_match_over_return_no")
+    filename = (
+        "assets/test_images/vf5/replay_match_over_return_to_replay_list_no_selected.png"
+    )
+    assert os.path.isfile(filename)
+
+    frame = cv2.imread(filename)
+    assert cv.is_match(frame)
+
+
+def test_replay_over_return_yes():
+    cv: FlexibleCv = FlexibleCv("vf5-replay-menu", "replay_match_over_return_yes")
+    filename = "assets/test_images/vf5/replay_match_over_return_to_replay_list_yes_selected.png"
+    assert os.path.isfile(filename)
+
+    frame = cv2.imread(filename)
+    assert cv.is_match(frame)
