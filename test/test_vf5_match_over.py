@@ -10,12 +10,15 @@ from fg_cv.match_over_extractor import MatchOverExtractor
 
 match_over_test_data = [
     "assets/test_images/vf5/match_over_01.png",
+    "assets/test_images/vf5/splash_screen_ws.png",
 ]
 
 
 @pytest.mark.parametrize("filename", match_over_test_data)
-def test_is_match_over(filename):
+def test_is_match_over(filename):        
     mo = MatchOverExtractor(game="vf5")
+    
+    assert(os.path.isfile(filename))
     frame = cv2.imread(filename)
     mo.set_frame(frame)
     assert mo.is_match_over_screen()
