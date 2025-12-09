@@ -11,5 +11,8 @@ from fg_cv import FlexibleCv
 
 def test_replay_top_selected():
     cv: FlexibleCv = FlexibleCv("vf5-replay-menu", "replay_menu_first_selected")
-    frame = cv2.imread("assets/images/vf5/replay_top_selected.png")
+    filename = "assets/test_images/vf5/replay_top_selected.png"
+    assert os.path.isfile(filename)
+
+    frame = cv2.imread(filename)
     assert cv.is_match(frame)
