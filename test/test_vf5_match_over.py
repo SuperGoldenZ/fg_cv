@@ -15,10 +15,10 @@ match_over_test_data = [
 
 
 @pytest.mark.parametrize("filename", match_over_test_data)
-def test_is_match_over(filename):        
+def test_is_match_over(filename):
     mo = MatchOverExtractor(game="vf5")
-    
-    assert(os.path.isfile(filename))
+
+    assert os.path.isfile(filename)
     frame = cv2.imread(filename)
     mo.set_frame(frame)
     assert mo.is_match_over_screen()
