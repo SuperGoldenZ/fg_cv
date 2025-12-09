@@ -7,4 +7,5 @@ layout = {
         {"x": 1911, "y": 27, "color": "#0c1a2c"},
     ],
     "unexpected_colors": [],
+    "threshold": 4,
 }
