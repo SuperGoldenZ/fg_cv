@@ -16,3 +16,12 @@ def test_replay_top_selected():
 
     frame = cv2.imread(filename)
     assert cv.is_match(frame)
+
+
+def test_replay_over_return():
+    cv: FlexibleCv = FlexibleCv("vf5-replay-menu", "replay_match_over_return")
+    filename = "assets/test_images/vf5/replay_match_over_return_to_replay_list.png"
+    assert os.path.isfile(filename)
+
+    frame = cv2.imread(filename)
+    assert cv.is_match(frame)
