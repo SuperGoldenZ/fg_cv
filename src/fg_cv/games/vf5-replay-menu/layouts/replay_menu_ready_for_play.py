@@ -7,6 +7,8 @@ layout = {
         {"x": 1911, "y": 27, "color": "#0c1a2c"},
         {"x": 674, "y": 386, "color": "#c10000"},
         {"x": 818, "y": 516, "color": "#ee8d01"},
+        {"x": 1050, "y": 533, "color": "#f78207"},
+        {"x": 839, "y": 576, "color": "#2e2e2e"},
     ],
     "unexpected_colors": [],
     "threshold": 6,
