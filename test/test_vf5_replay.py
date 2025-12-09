@@ -54,3 +54,12 @@ def test_replay_menu_ready_for_play():
 
     frame = cv2.imread(filename)
     assert cv.is_match(frame)
+
+
+def test_replay_menu_ready_for_play_2():
+    cv: FlexibleCv = FlexibleCv("vf5-replay-menu", "replay_menu_ready_for_play")
+    filename = "assets/test_images/vf5/replay_menu_ready_for_play_02.png"
+    assert os.path.isfile(filename)
+
+    frame = cv2.imread(filename)
+    assert cv.is_match(frame)
