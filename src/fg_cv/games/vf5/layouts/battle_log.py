@@ -34,5 +34,15 @@ layout = {
             "threshold": 125,
             "chars": " 0123456789:/",
         },
+        "match4_datetime": {
+            "x": 1119,
+            "y": 855,
+            "w": 162,
+            "h": 24,
+            "colors": ["#ffffff"],
+            "method": "pytesseract",
+            "threshold": 125,
+            "chars": " 0123456789:/",
+        },
     },
 }
