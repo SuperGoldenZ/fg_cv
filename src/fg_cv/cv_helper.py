@@ -168,7 +168,7 @@ class CvHelper:
         return result
 
     @staticmethod
-    def ocr_from_pytesseract(roi, block, chars=None, threshold=5):
+    def ocr_from_pytesseract(roi, block, chars=None, threshold=5, debug=False):
         # all black to white
         target_bgr = np.array(CvHelper.hex_to_bgr("#000000"))
         diff = cv2.absdiff(roi, target_bgr)
@@ -176,6 +176,7 @@ class CvHelper:
         mask = cv2.threshold(mask, 15, 255, cv2.THRESH_BINARY_INV)[
             1
         ]  # adjust tolerance
+        original = roi
         roi[mask == 255] = (255, 255, 255)
 
         for color in block["colors"]:
@@ -202,9 +203,10 @@ class CvHelper:
             np.uint8
         )
 
-        # cv2.imshow("original", image[y:y+h, x:x+w])
-        # cv2.imshow("processed", roi)
-        # cv2.waitKey()
+        if debug:
+            cv2.imshow("original", original)
+            cv2.imshow("processed", roi)
+            cv2.waitKey()
 
         # OCR with pytesseract
         result = None
@@ -231,9 +233,23 @@ class CvHelper:
 
             x, y, w, h = block["x"], block["y"], block["w"], block["h"]
             roi = image[y : y + h, x : x + w].copy()
-            if method == "pytesseract":
-                text = CvHelper.ocr_from_pytesseract(roi, block)
-            elif method == "openai":
+            override_method = method
+            if "method" in block:
+                override_method = block["method"]
+
+            threshold = 5
+            if "threshold" in block:
+                threshold = block["threshold"]
+
+            chars = None
+            if "chars" in block:
+                chars = block["chars"]
+
+            if override_method == "pytesseract":
+                text = CvHelper.ocr_from_pytesseract(
+                    roi, block, threshold=threshold, chars=chars
+                )
+            elif override_method == "openai":
                 text = self.ocr_with_openai(roi)
             results[block_name] = text
 
