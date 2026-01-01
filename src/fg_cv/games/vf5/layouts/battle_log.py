@@ -1,8 +1,13 @@
 # General
 layout = {
-    "expected_colors": [],
+    "expected_colors": [
+        {"x": 525, "y": 81, "color": "#c10000"},
+        {"x": 1611, "y": 344, "color": "#302d31"},
+        {"x": 1809, "y": 53, "color": "#001fff"},
+        {"x": 1380, "y": 927, "color": "#0e24e0"},
+    ],
     "unexpected_colors": [],
-    "threshold": 0,
+    "threshold": 4,
     "ocr_blocks": {
         "match1_datetime": {
             "x": 1119,
