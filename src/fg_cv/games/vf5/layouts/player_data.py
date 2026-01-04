@@ -11,6 +11,7 @@ layout = {
         {"x": 1608, "y": 908, "color": "#1e1c1f"},
         {"x": 767, "y": 929, "color": "#0e24e0"},
         {"x": 440, "y": 927, "color": "#0e24e0"},
+        {"x": 705, "y": 204, "color": "#db6d08"},
     ],
     "unexpected_colors": [{"x": 912, "y": 539, "color": "#720c0b"}],
     "threshold": 11,
