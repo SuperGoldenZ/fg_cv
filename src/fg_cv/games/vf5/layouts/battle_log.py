@@ -6,7 +6,10 @@ layout = {
         {"x": 1809, "y": 53, "color": "#001fff"},
         {"x": 1380, "y": 927, "color": "#0e24e0"},
     ],
-    "unexpected_colors": [],
+    "unexpected_colors": [
+        {"x": 1494, "y": 735, "color": "#302d31"},
+        {"x": 1197, "y": 434, "color": "#302d31"},
+    ],
     "threshold": 4,
     "ocr_blocks": {
         "match1_datetime": {

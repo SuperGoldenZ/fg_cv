@@ -1,10 +1,15 @@
 # Table of contents
 
+- [0.0.7](#007)
 - [0.0.6](#006)
 - [0.0.5](#005)
 - [0.0.4](#004)
 - [0.0.3](#003)
 - [0.0.2](#002)
+
+## 0.0.7
+- Now detects when no matches in playerlog
+[#22](https://github.com/SuperGoldenZ/fg_cv/issues/22)
 
 ## 0.0.6
 - Can now detect VF5 player data screen when Battle Log highlighted
