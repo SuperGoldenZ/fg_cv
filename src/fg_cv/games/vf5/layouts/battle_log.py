@@ -5,12 +5,12 @@ layout = {
         {"x": 1611, "y": 344, "color": "#302d31"},
         {"x": 1809, "y": 53, "color": "#001fff"},
         {"x": 1380, "y": 927, "color": "#0e24e0"},
+        {"x": 1392, "y": 560, "color": "#010101"},
+        {"x": 1392, "y": 315, "color": "#010101"},
+        {"x": 1392, "y": 774, "color": "#010101"},
     ],
-    "unexpected_colors": [
-        {"x": 1494, "y": 735, "color": "#302d31"},
-        {"x": 1197, "y": 434, "color": "#302d31"},
-    ],
-    "threshold": 4,
+    "threshold": 5,
+    "unexpected_colors": [],
     "ocr_blocks": {
         "match1_datetime": {
             "x": 1119,
