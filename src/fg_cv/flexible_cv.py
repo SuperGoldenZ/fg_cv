@@ -14,6 +14,7 @@ class FlexibleCv:
         ).layout
 
         self.frame = None
+        self.row_y_tops_key = "row_y_tops"
 
         self.cv_helper = CvHelper()
 
@@ -125,9 +126,10 @@ class FlexibleCv:
         if row_num is None:
             return None
 
-        row_y_tops = self.layout.get("row_y_tops", [])
+        row_y_tops = self.layout.get(self.row_y_tops_key, [])
         roi_cfg = self.layout.get("p1_result_roi")
         if not roi_cfg or row_num < 1 or row_num > len(row_y_tops):
+            print(f"could not row {row_num}, returning None")
             return None
 
         row_top = row_y_tops[row_num - 1]
@@ -137,16 +139,26 @@ class FlexibleCv:
         h = int(roi_cfg["h"] * self.factor)
 
         roi = self.frame[y : y + h, x : x + w]
-        thr = roi_cfg.get("color_threshold", 20)
+        thr = roi_cfg.get("color_threshold", 25)
         min_px = roi_cfg.get("min_pixels", 5)
 
-        win_count = CvHelper.count_color_in_roi(roi, roi_cfg["win_color"], threshold=thr)
-        lose_count = CvHelper.count_color_in_roi(roi, roi_cfg["lose_color"], threshold=thr)
+        win_count = CvHelper.count_color_in_roi(
+            roi, roi_cfg["win_color"], threshold=thr
+        )
+        lose_count = CvHelper.count_color_in_roi(
+            roi, roi_cfg["lose_color"], threshold=thr
+        )
 
         if win_count >= min_px:
             return 1  # P1 wins
         if lose_count >= min_px:
             return 2  # P2 wins
+
+        print(
+            f"could not get winner {win_count} {lose_count} .... {min_px}, returning None"
+        )
+        cv2.imshow("roi with no player", roi)
+        cv2.waitKey(0)
         return None
 
     def get_datetime_from_selected_row(self, row_num=None):
@@ -169,7 +181,7 @@ class FlexibleCv:
         if row_num is None:
             return None
 
-        row_y_tops = self.layout.get("row_y_tops", [])
+        row_y_tops = self.layout.get(self.row_y_tops_key, [])
         roi_cfg = self.layout.get("datetime_roi")
         if not roi_cfg or row_num < 1 or row_num > len(row_y_tops):
             return None
@@ -191,25 +203,60 @@ class FlexibleCv:
         except ValueError:
             return None
 
+    def get_replay_id(self):
+        """Return the Replay ID string from the replay details screen.
+
+        Reads the replay ID text region (``replay_id_roi`` in the layout).
+        The region contains white text on a dark background; a grayscale
+        threshold inversion produces black text on white for pytesseract.
+
+        Returns:
+            Replay ID string (uppercase alphanumeric), or None if extraction fails.
+        """
+        roi_cfg = self.layout.get("replay_id_roi")
+        if not roi_cfg:
+            return None
+
+        x = int(roi_cfg["x"] * self.factor)
+        y = int(roi_cfg["y"] * self.factor)
+        w = int(roi_cfg["w"] * self.factor)
+        h = int(roi_cfg["h"] * self.factor)
+
+        roi = self.frame[y : y + h, x : x + w]
+        gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+        # Otsu: white text → black, dark background → white
+        _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+        # Upscale and re-binarise so Tesseract gets sharper strokes
+        big = cv2.resize(thresh, (w * 2, h * 2), interpolation=cv2.INTER_LANCZOS4)
+        _, big = cv2.threshold(big, 127, 255, cv2.THRESH_BINARY)
+        padded = cv2.copyMakeBorder(big, 20, 20, 20, 20, cv2.BORDER_CONSTANT, value=255)
+
+        chars = roi_cfg.get("chars", "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+        text = pytesseract.image_to_string(
+            padded, config=f"--psm 7 -c tessedit_char_whitelist={chars}"
+        )
+        return text.strip() or None
+
     def get_match_type_from_selected_row(self, row_num=None):
         """Return the match type for the selected replay row.
 
         Samples the match-type badge region (``match_type_roi`` in the layout):
-          - Red   badge (``ranked_color``) → returns "ranked"
-          - Purple badge (``custom_color``) → returns "custom"
+          - Red    badge (``ranked_color``)     → returns "ranked"
+          - Purple badge (``custom_color``)     → returns "custom"
+          - Blue   badge (``battle_hub_color``) → returns "battle_hub"
 
         Args:
             row_num: 1-based row index; if None, auto-detects via get_selected_row().
 
         Returns:
-            "ranked", "custom", or None if no badge colour is detected.
+            "ranked", "custom", "battle_hub", or None if no badge colour is detected.
         """
         if row_num is None:
             row_num = self.get_selected_row()
         if row_num is None:
             return None
 
-        row_y_tops = self.layout.get("row_y_tops", [])
+        row_y_tops = self.layout.get(self.row_y_tops_key, [])
         roi_cfg = self.layout.get("match_type_roi")
         if not roi_cfg or row_num < 1 or row_num > len(row_y_tops):
             return None
@@ -224,11 +271,20 @@ class FlexibleCv:
         thr = roi_cfg.get("color_threshold", 30)
         min_px = roi_cfg.get("min_pixels", 5)
 
-        ranked_count = CvHelper.count_color_in_roi(roi, roi_cfg["ranked_color"], threshold=thr)
-        custom_count = CvHelper.count_color_in_roi(roi, roi_cfg["custom_color"], threshold=thr)
+        ranked_count = CvHelper.count_color_in_roi(
+            roi, roi_cfg["ranked_color"], threshold=thr
+        )
+        custom_count = CvHelper.count_color_in_roi(
+            roi, roi_cfg["custom_color"], threshold=thr
+        )
+        battle_hub_count = CvHelper.count_color_in_roi(
+            roi, roi_cfg["battle_hub_color"], threshold=thr
+        )
 
         if ranked_count >= min_px:
             return "ranked"
         if custom_count >= min_px:
             return "custom"
+        if battle_hub_count >= min_px:
+            return "battle_hub"
         return None

@@ -89,7 +89,8 @@ def test_get_datetime_from_selected_row(filename, expected_datetime):
         ("assets/test_images/sf6/replays_list_row_03.png",        "ranked"),
         ("assets/test_images/sf6/replays_list_row_04.png",        "ranked"),
         ("assets/test_images/sf6/replays_list_row_05.png",        "ranked"),
-        ("assets/test_images/sf6/replays_list_row_04_custom.png", "custom"),
+        ("assets/test_images/sf6/replays_list_row_04_custom.png",    "custom"),
+        ("assets/test_images/sf6/replays_list_row_02_battle_hub.png", "battle_hub"),
     ],
 )
 def test_get_match_type_from_selected_row(filename, expected_type):
