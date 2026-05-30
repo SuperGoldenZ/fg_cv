@@ -1,4 +1,5 @@
 import importlib
+import os
 from datetime import datetime
 from fg_cv.cv_helper import CvHelper
 import cv2
@@ -288,3 +289,111 @@ class FlexibleCv:
         if battle_hub_count >= min_px:
             return "battle_hub"
         return None
+
+    def _load_portrait_refs_for_side(self, portraits_dir, side):
+        """Load and cache histogram-equalised grayscale reference portraits for one side."""
+        if not hasattr(self, "_portrait_ref_cache"):
+            self._portrait_ref_cache = {}
+        key = (portraits_dir, side)
+        if key not in self._portrait_ref_cache:
+            refs = {}
+            side_dir = os.path.join(portraits_dir, side)
+            if os.path.isdir(side_dir):
+                for fname in os.listdir(side_dir):
+                    if fname.endswith(".png"):
+                        char = fname[:-4]
+                        img = cv2.imread(
+                            os.path.join(side_dir, fname), cv2.IMREAD_GRAYSCALE
+                        )
+                        if img is not None:
+                            refs[char] = cv2.equalizeHist(img)
+            self._portrait_ref_cache[key] = refs
+        return self._portrait_ref_cache[key]
+
+    @staticmethod
+    def _match_portrait(query_gray, refs_combined):
+        """Return the best-matching character name using histogram-equalised NCC."""
+        if not refs_combined:
+            return None
+        q_eq = cv2.equalizeHist(query_gray)
+        best_char, best_score = None, -99.0
+        for char, (ref_eq, penalty) in refs_combined.items():
+            score = (
+                float(cv2.matchTemplate(q_eq, ref_eq, cv2.TM_CCOEFF_NORMED)[0, 0])
+                - penalty
+            )
+            if score > best_score:
+                best_score = score
+                best_char = char
+        return best_char
+
+    def get_characters_from_selected_row(self, row_num=None):
+        """Return (p1_char, p2_char) for the selected replay row via portrait matching.
+
+        Extracts the P1 and P2 portrait ROIs defined by ``portrait_roi`` in the
+        layout, converts them to grayscale, applies histogram equalisation (so
+        coloured winner and B&W loser portraits both match correctly), then picks
+        the highest-scoring reference portrait from the per-side library stored in
+        ``portrait_roi["portraits_dir"]``.
+
+        When a character only has a reference on the opposite side (e.g. a character
+        that always appeared as P1 in the training data) that cross-side reference is
+        used with a small score penalty so same-side references are always preferred
+        when available.
+
+        Args:
+            row_num: 1-based row index; if None, auto-detects via get_selected_row().
+
+        Returns:
+            ``(p1_char, p2_char)`` tuple of lowercase character name strings, or
+            ``(None, None)`` if the row cannot be located or no reference images
+            are found.
+        """
+        if row_num is None:
+            row_num = self.get_selected_row()
+        if row_num is None:
+            return None, None
+
+        row_y_tops = (
+            self.layout.get(self.row_y_tops_key)
+            or self.layout.get("row_y_tops_search")
+            or []
+        )
+        cfg = self.layout.get("portrait_roi")
+        if not cfg or row_num < 1 or row_num > len(row_y_tops):
+            return None, None
+
+        row_top = row_y_tops[row_num - 1]
+        y = int((row_top + cfg.get("y_offset", 0)) * self.factor)
+        w = int(cfg["w"] * self.factor)
+        h = int(cfg["h"] * self.factor)
+        p1_x = int(cfg["p1_x"] * self.factor)
+        p2_x = int(cfg["p2_x"] * self.factor)
+
+        portraits_dir = cfg.get("portraits_dir", "")
+        refs_p1 = self._load_portrait_refs_for_side(portraits_dir, "p1")
+        refs_p2 = self._load_portrait_refs_for_side(portraits_dir, "p2")
+
+        # Build combined lookups: same-side ref preferred, cross-side as fallback.
+        _CROSS_PENALTY = 0.05
+        all_chars = set(refs_p1) | set(refs_p2)
+        combined_p1 = {
+            c: (refs_p1[c], 0.0) if c in refs_p1 else (refs_p2[c], _CROSS_PENALTY)
+            for c in all_chars
+        }
+        combined_p2 = {
+            c: (refs_p2[c], 0.0) if c in refs_p2 else (refs_p1[c], _CROSS_PENALTY)
+            for c in all_chars
+        }
+
+        p1_gray = cv2.cvtColor(
+            self.frame[y : y + h, p1_x : p1_x + w], cv2.COLOR_BGR2GRAY
+        )
+        p2_gray = cv2.cvtColor(
+            self.frame[y : y + h, p2_x : p2_x + w], cv2.COLOR_BGR2GRAY
+        )
+
+        return (
+            self._match_portrait(p1_gray, combined_p1),
+            self._match_portrait(p2_gray, combined_p2),
+        )

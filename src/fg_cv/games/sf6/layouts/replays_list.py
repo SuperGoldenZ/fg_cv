@@ -48,4 +48,15 @@ layout = {
         "h": 50,
         "chars": " 0123456789:/",  # whitelist — date/time characters only
     },
+    # Character portrait regions (one per side, no flip needed)
+    # Winner has a coloured portrait; loser has a black-and-white portrait.
+    # Matching uses grayscale + histogram equalisation so both states work.
+    "portrait_roi": {
+        "p1_x": 465,
+        "p2_x": 843,
+        "y_offset": 0,   # pixels below the row's top edge
+        "w": 145,
+        "h": 118,
+        "portraits_dir": "assets/sf6/character_portraits",
+    },
 }
