@@ -1,12 +1,14 @@
 layout = {
     "expected_colors": [
-        {"x": 100, "y": 55, "color": "#ffffff"},  # tab bar white element
-        {"x": 100, "y": 90, "color": "#03040a"},  # below tabs dark background
-        {"x": 1800, "y": 200, "color": "#4a5892"},  # right side blue panel
-        {"x": 1850, "y": 55, "color": "#5b6eb7"},  # far-right tab area blue
+        {"x": 100,  "y": 55,  "color": "#ffffff"},  # tab bar white — only on replay list
+        {"x": 100,  "y": 90,  "color": "#04050c"},  # below tabs dark background
+        {"x": 1800, "y": 200, "color": "#4a5892"},  # right blue panel (upper)
+        {"x": 1850, "y": 55,  "color": "#5b6eb7"},  # far-right tab area blue
+        {"x": 1820, "y": 400, "color": "#2a345e"},  # right blue panel (mid)
+        {"x": 1820, "y": 600, "color": "#282f4b"},  # right blue panel (lower)
     ],
     "unexpected_colors": [],
-    "threshold": 3,
+    "threshold": 6,
     # Row selection detection: at x=selected_x, the selected row has a bright
     # background (brightness > brightness_threshold) while unselected rows are dark.
     "row_y_centers": [304, 429, 554, 679, 804],
