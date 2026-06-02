@@ -117,6 +117,36 @@ def test_get_match_type_from_selected_row(filename, expected_type):
 
 
 @pytest.mark.parametrize(
+    "filename, expected_p1_mr, expected_p2_mr",
+    [
+        (
+            "assets/test_images/sf6/replay_list_row_01/p1_aki_loses_vs_p2_luke.png",
+            2090,
+            1980,
+        ),
+        (
+            "assets/test_images/sf6/replay_list_row_01/p1_aki_wins_vs_p2_manon.png",
+            1699,
+            1650,
+        ),
+        (
+            "assets/test_images/sf6/replay_list_row_01/p1_akuma_wins_vs_p2_alex.png",
+            1524,
+            1422,
+        ),
+    ],
+)
+def test_get_mr_from_selected_row(filename, expected_p1_mr, expected_p2_mr):
+    cv = FlexibleCv(game="sf6", layout_name="replays_list")
+    frame = cv2.imread(filename)
+    assert frame is not None, f"Could not load image: {filename}"
+    cv.set_frame(frame)
+    p1, p2 = cv.get_mr_from_selected_row()
+    assert p1 == expected_p1_mr
+    assert p2 == expected_p2_mr
+
+
+@pytest.mark.parametrize(
     "filename, expected_p1_ringname, expected_p2_ringname",
     [
         (

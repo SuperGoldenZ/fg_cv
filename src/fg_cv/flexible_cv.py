@@ -386,6 +386,55 @@ class FlexibleCv:
         p2_roi = self.frame[y : y + h, p2_x : p2_x + p2_w]
         return _ocr_ringname(p1_roi), _ocr_ringname(p2_roi)
 
+    def get_mr_from_selected_row(self, row_num=None):
+        """Return (p1_mr, p2_mr) Master Rank integers for the selected replay row.
+
+        Extracts the P1 and P2 MR regions defined by ``mr_roi`` in the layout
+        and reads the digit-only content via pytesseract (PSM 6, digit whitelist).
+
+        Args:
+            row_num: 1-based row index; if None, auto-detects via get_selected_row().
+
+        Returns:
+            ``(p1_mr, p2_mr)`` as integers, or ``(None, None)`` on failure.
+        """
+        if row_num is None:
+            row_num = self.get_selected_row()
+        if row_num is None:
+            return None, None
+
+        row_y_tops = (
+            self.layout.get(self.row_y_tops_key)
+            or self.layout.get("row_y_tops_search")
+            or []
+        )
+        roi_cfg = self.layout.get("mr_roi")
+        if not roi_cfg or row_num < 1 or row_num > len(row_y_tops):
+            return None, None
+
+        row_top = row_y_tops[row_num - 1]
+        y = int((row_top + roi_cfg["y_offset"]) * self.factor)
+        w = int(roi_cfg["w"] * self.factor)
+        h = int(roi_cfg["h"] * self.factor)
+        p1_x = int(roi_cfg["p1_x"] * self.factor)
+        p2_x = int(roi_cfg["p2_x"] * self.factor)
+
+        def _ocr_mr(roi):
+            gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+            rh, rw = gray.shape[:2]
+            big = cv2.resize(gray, (rw * 3, rh * 3), interpolation=cv2.INTER_LANCZOS4)
+            padded = cv2.copyMakeBorder(
+                big, 20, 20, 20, 20, cv2.BORDER_CONSTANT, value=255
+            )
+            raw = pytesseract.image_to_string(
+                padded, config="--psm 6 -c tessedit_char_whitelist=0123456789"
+            ).strip()
+            return int(raw) if raw.isdigit() else None
+
+        p1_roi = self.frame[y : y + h, p1_x : p1_x + w]
+        p2_roi = self.frame[y : y + h, p2_x : p2_x + w]
+        return _ocr_mr(p1_roi), _ocr_mr(p2_roi)
+
     def get_characters_from_selected_row(self, row_num=None):
         """Return (p1_char, p2_char) for the selected replay row via portrait matching.
 

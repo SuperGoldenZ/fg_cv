@@ -48,6 +48,14 @@ layout = {
         "h": 50,
         "chars": " 0123456789:/",  # whitelist — date/time characters only
     },
+    # Player MR (Master Rank) number regions — digits only
+    "mr_roi": {
+        "p1_x": 332,
+        "p2_x": 1167,
+        "y_offset": 45,
+        "w": 62,
+        "h": 50,
+    },
     # Player ringname text regions (dark text on bright row background)
     "ringname_roi": {
         "p1_x": 216,
