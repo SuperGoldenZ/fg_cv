@@ -48,6 +48,15 @@ layout = {
         "h": 50,
         "chars": " 0123456789:/",  # whitelist — date/time characters only
     },
+    # Player ringname text regions (dark text on bright row background)
+    "ringname_roi": {
+        "p1_x": 216,
+        "p2_x": 1050,
+        "y_offset": 0,
+        "p1_w": 225,
+        "p2_w": 200,  # narrower: rank badge starts ~50px before 225 on the P2 side
+        "h": 50,
+    },
     # Character portrait regions (one per side, no flip needed)
     # Winner has a coloured portrait; loser has a black-and-white portrait.
     # Matching uses grayscale + histogram equalisation so both states work.

@@ -1,5 +1,6 @@
 import importlib
 import os
+import re
 from datetime import datetime
 from fg_cv.cv_helper import CvHelper
 import cv2
@@ -7,7 +8,7 @@ import pytesseract
 
 
 class FlexibleCv:
-    def __init__(self, game, layout_name="first_99"):
+    def __init__(self, game, layout_name="first_99", suffix=None):
         self.game = game
 
         self.layout = importlib.import_module(
@@ -16,6 +17,8 @@ class FlexibleCv:
 
         self.frame = None
         self.row_y_tops_key = "row_y_tops"
+        if suffix is not None:
+            self.row_y_tops_key = f"row_y_tops_{suffix}"
 
         self.cv_helper = CvHelper()
 
@@ -327,6 +330,62 @@ class FlexibleCv:
                 best_char = char
         return best_char
 
+    def get_ringnames_from_selected_row(self, row_num=None):
+        """Return (p1_ringname, p2_ringname) for the selected replay row via OCR.
+
+        Extracts the P1 and P2 ringname regions defined by ``ringname_roi`` in
+        the layout.  Both regions contain white text on a dark background; the
+        preprocessing pipeline inverts and binarises so Tesseract receives black
+        text on white.  ``lang='eng+jpn'`` handles both Latin and Japanese names.
+
+        Args:
+            row_num: 1-based row index; if None, auto-detects via get_selected_row().
+
+        Returns:
+            ``(p1_ringname, p2_ringname)`` strings, or ``(None, None)`` on failure.
+        """
+        if row_num is None:
+            row_num = self.get_selected_row()
+        if row_num is None:
+            return None, None
+
+        row_y_tops = (
+            self.layout.get(self.row_y_tops_key)
+            or self.layout.get("row_y_tops_search")
+            or []
+        )
+        roi_cfg = self.layout.get("ringname_roi")
+        if not roi_cfg or row_num < 1 or row_num > len(row_y_tops):
+            return None, None
+
+        row_top = row_y_tops[row_num - 1]
+        y = int((row_top + roi_cfg.get("y_offset", 0)) * self.factor)
+        h = int(roi_cfg["h"] * self.factor)
+        p1_x = int(roi_cfg["p1_x"] * self.factor)
+        p2_x = int(roi_cfg["p2_x"] * self.factor)
+        p1_w = int(roi_cfg.get("p1_w", roi_cfg.get("w", 225)) * self.factor)
+        p2_w = int(roi_cfg.get("p2_w", roi_cfg.get("w", 225)) * self.factor)
+
+        def _ocr_ringname(roi):
+            gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+            rh, rw = gray.shape[:2]
+            # 3× upscale preserves font anti-aliasing better than binarising first
+            big = cv2.resize(gray, (rw * 3, rh * 3), interpolation=cv2.INTER_LANCZOS4)
+            padded = cv2.copyMakeBorder(
+                big, 20, 20, 20, 20, cv2.BORDER_CONSTANT, value=255
+            )
+            text = pytesseract.image_to_string(
+                padded, lang="eng+jpn", config="--psm 7"
+            ).strip()
+            # Tesseract inserts phantom spaces between CJK characters; remove them
+            if re.search(r"[぀-ヿ一-鿿]", text):
+                text = text.replace(" ", "")
+            return text or None
+
+        p1_roi = self.frame[y : y + h, p1_x : p1_x + p1_w]
+        p2_roi = self.frame[y : y + h, p2_x : p2_x + p2_w]
+        return _ocr_ringname(p1_roi), _ocr_ringname(p2_roi)
+
     def get_characters_from_selected_row(self, row_num=None):
         """Return (p1_char, p2_char) for the selected replay row via portrait matching.
 
@@ -352,6 +411,7 @@ class FlexibleCv:
         if row_num is None:
             row_num = self.get_selected_row()
         if row_num is None:
+            print("Selected row is none")
             return None, None
 
         row_y_tops = (
@@ -361,6 +421,7 @@ class FlexibleCv:
         )
         cfg = self.layout.get("portrait_roi")
         if not cfg or row_num < 1 or row_num > len(row_y_tops):
+            print("not cfg etc")
             return None, None
 
         row_top = row_y_tops[row_num - 1]
