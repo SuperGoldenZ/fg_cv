@@ -54,7 +54,7 @@ layout = {
         "p1_x": 332,
         "p2_x": 1167,
         "y_offset": 45,
-        "w": 62,
+        "w": 59,
         "h": 50,
     },
     # Player ringname text regions (dark text on bright row background)
