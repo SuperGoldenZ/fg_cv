@@ -15,6 +15,7 @@ layout = {
     "selected_x": 1296,
     "brightness_threshold": 150,
     # Absolute y of each row's top edge (used to locate ROIs within a row)
+    "row_y_tops": [242, 367, 492, 617, 742],
     "row_y_tops_favorite_players": [242 - 35, 367 - 35, 492 - 35, 617 - 35, 742 - 35],
     "row_y_tops_search": [242, 367, 492, 617, 742],
     # P1 result text region: blue = P1 wins, grey = P1 loses
