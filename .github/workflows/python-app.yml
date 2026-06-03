@@ -26,8 +26,7 @@ jobs:
       - name: Install Tesseract OCR
         run: |
           sudo apt-get update
-          sudo apt-get install -y tesseract-ocr
-          sudo apt-get install -y libtesseract-dev
+          sudo apt-get install -y tesseract-ocr tesseract-ocr-jpn libtesseract-dev
       - name: Install dependencies
         run: |
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi

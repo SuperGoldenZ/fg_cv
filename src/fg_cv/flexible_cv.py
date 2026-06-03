@@ -426,10 +426,14 @@ class FlexibleCv:
             padded = cv2.copyMakeBorder(
                 big, 20, 20, 20, 20, cv2.BORDER_CONSTANT, value=255
             )
-            raw = pytesseract.image_to_string(
-                padded, config="--psm 6 -c tessedit_char_whitelist=0123456789"
-            ).strip()
-            return int(raw) if raw.isdigit() else None
+            cfg = "-c tessedit_char_whitelist=0123456789"
+            # PSM 7 (single line) avoids multi-line artifacts on some Tesseract builds;
+            # fall back to PSM 6 when PSM 7 returns nothing (happens on certain crops).
+            for psm in (7, 6):
+                raw = pytesseract.image_to_string(padded, config=f"--psm {psm} {cfg}").strip()
+                if raw.isdigit():
+                    return int(raw)
+            return None
 
         p1_roi = self.frame[y : y + h, p1_x : p1_x + w]
         p2_roi = self.frame[y : y + h, p2_x : p2_x + w]
