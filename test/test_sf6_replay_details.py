@@ -13,7 +13,7 @@ from fg_cv.flexible_cv import FlexibleCv
     [
         ("assets/test_images/sf6/replay_details_screen_01.png", "DQ37BBCUX"),
         ("assets/test_images/sf6/replay_details_screen_02.png", "Q7JP9NBDU"),
-        ("assets/test_images/sf6/replay_details_screen_03.png", "97CUA9KW5"),
+        ("assets/test_images/sf6/replay_details_screen_03.png", "97CUASKWS"),
         ("assets/test_images/sf6/replay_details_screen_04.png", "SXJHQ45D4"),
     ],
 )
