@@ -4,6 +4,7 @@ import re
 from datetime import datetime
 from fg_cv.cv_helper import CvHelper
 import cv2
+import numpy as np
 import pytesseract
 
 
@@ -507,3 +508,100 @@ class FlexibleCv:
             self._match_portrait(p1_gray, combined_p1),
             self._match_portrait(p2_gray, combined_p2),
         )
+
+    def get_round_results(self):
+        """Return winning round result icon names in round order.
+
+        Searches both the P1 and P2 icon columns defined by ``round_result_roi``
+        in the layout.  For each round, the winner's icon (e.g. ``"p1_victory"``,
+        ``"p2_chip_damage"``) is returned; ``*_loses`` icons are ignored.
+
+        Returns:
+            List of icon name strings (without extension), one per played round,
+            sorted by round order.
+        """
+        cfg = self.layout.get("round_result_roi")
+        if not cfg:
+            return []
+
+        icons_dir = cfg["icons_dir"]
+        match_threshold = cfg.get("match_threshold", 0.9)
+        nms_gap = max(1, int(25 * self.factor))
+        x_pad_l = max(1, int(20 * self.factor))
+        x_pad_r = max(1, int(40 * self.factor))
+        y_pad = max(1, int(10 * self.factor))
+
+        p1_templates, p2_templates = {}, {}
+        for fname in os.listdir(icons_dir):
+            if not fname.endswith(".png"):
+                continue
+            stem = fname[:-4]
+            if stem.endswith("_loses"):
+                continue
+            img = cv2.imread(os.path.join(icons_dir, fname))
+            if img is None:
+                continue
+            if self.factor != 1:
+                h, w = img.shape[:2]
+                img = cv2.resize(
+                    img,
+                    (max(1, int(w * self.factor)), max(1, int(h * self.factor))),
+                )
+            if stem.startswith("p1_"):
+                p1_templates[stem] = img
+            elif stem.startswith("p2_"):
+                p2_templates[stem] = img
+
+        p1_x = int(cfg["p1_x"] * self.factor)
+        p2_x = int(cfg["p2_x"] * self.factor)
+        col_y = int(cfg["y"] * self.factor)
+        col_w = int(cfg["w"] * self.factor)
+        col_h = int(cfg["h"] * self.factor)
+
+        p1_det = self._find_winning_icons(
+            self.frame, p1_x, col_y, col_w, col_h, p1_templates,
+            x_pad_l, x_pad_r, y_pad, match_threshold, nms_gap,
+        )
+        p2_det = self._find_winning_icons(
+            self.frame, p2_x, col_y, col_w, col_h, p2_templates,
+            x_pad_l, x_pad_r, y_pad, match_threshold, nms_gap,
+        )
+
+        combined = p1_det + p2_det
+        combined.sort()
+        return [name for _, name in combined]
+
+    @staticmethod
+    def _find_winning_icons(frame, x, y, w, h, templates,
+                            x_pad_l, x_pad_r, y_pad, threshold, nms_gap):
+        """Match icon templates against a padded search region; return [(y_center, name)]."""
+        fh, fw = frame.shape[:2]
+        x_start = max(0, x - x_pad_l)
+        x_end = min(fw, x + w + x_pad_r)
+        y_start = max(0, y - y_pad)
+        y_end = min(fh, y + h + y_pad)
+        roi = frame[y_start:y_end, x_start:x_end]
+
+        candidates = []
+        for name, tmpl in templates.items():
+            th, tw = tmpl.shape[:2]
+            if th > roi.shape[0] or tw > roi.shape[1]:
+                continue
+            res = cv2.matchTemplate(roi, tmpl, cv2.TM_CCOEFF_NORMED)
+            above_y, above_x = np.where(res >= threshold)
+            for y_idx, x_idx in zip(above_y, above_x):
+                y_abs = y_start + y_idx + th // 2
+                candidates.append((float(res[y_idx, x_idx]), y_abs, name))
+
+        candidates.sort(reverse=True)
+        kept = []
+        suppressed = set()
+        for i, (sc, yy, nm) in enumerate(candidates):
+            if i in suppressed:
+                continue
+            kept.append((yy, nm))
+            for j, (sc2, yy2, nm2) in enumerate(candidates):
+                if j != i and j not in suppressed and abs(yy2 - yy) < nms_gap:
+                    suppressed.add(j)
+        kept.sort()
+        return kept
