@@ -53,6 +53,7 @@ def test_is_replays_list_screen(filename):
         ("assets/test_images/sf6/replays_list_row_03.png", 1, None),  # P1 wins
         ("assets/test_images/sf6/replays_list_row_04.png", 1, None),  # P1 wins
         ("assets/test_images/sf6/replays_list_row_05.png", 2, "search"),  # P1 loses
+        ("assets/test_images/sf6/replay_list_row_01/draw.png", 0, "local"),  # draw
     ],
 )
 def test_get_winner_from_selected_row(filename, expected_winner, suffix):

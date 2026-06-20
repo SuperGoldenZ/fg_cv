@@ -21,6 +21,10 @@ class FlexibleCv:
         if suffix is not None:
             self.row_y_tops_key = f"row_y_tops_{suffix}"
 
+        self.row_y_centers_key = "row_y_centers"
+        if suffix is not None:
+            self.row_y_centers_key = f"row_y_centers_{suffix}"
+
         self.cv_helper = CvHelper()
 
     def set_frame(self, frame) -> None:
@@ -97,7 +101,7 @@ class FlexibleCv:
         Unselected rows have a dark background (~brightness 30–50); the selected row
         has a bright background (~brightness 229–254), so 150 is a safe midpoint.
         """
-        row_y_centers = self.layout.get("row_y_centers", [])
+        row_y_centers = self.layout.get(self.row_y_centers_key, self.layout.get("row_y_centers", []))
         selected_x = self.layout.get("selected_x", 1296)
         brightness_threshold = self.layout.get("brightness_threshold", 150)
 
@@ -112,19 +116,23 @@ class FlexibleCv:
         return None
 
     def get_winner_from_selected_row(self, row_num=None):
-        """Return the winning player number (1 or 2) for the selected replay row.
+        """Return the winning player number for the selected replay row.
 
-        Examines the P1 result text region (defined by ``p1_result_roi`` in the
-        layout) within the specified row:
-          - Blue  pixels (``win_color``)  → P1 wins  → returns 1
-          - Grey  pixels (``lose_color``) → P2 wins  → returns 2
+        Checks P1 result region (``p1_result_roi``) then P2 result region
+        (``p2_result_roi``) if present:
+          - P1 blue  → P1 wins  → returns 1
+          - P2 blue  → P2 wins  → returns 2
+          - P1 grey, no P2 blue → draw → returns 0
+          - no match → returns None
+
+        When ``p2_result_roi`` is absent the original two-state logic applies
+        (P1 blue → 1, P1 grey → 2).
 
         Args:
-            row_num: 1-based row index to examine; if None, auto-detects via
-                     get_selected_row().
+            row_num: 1-based row index; if None, auto-detects via get_selected_row().
 
         Returns:
-            1, 2, or None (if no colour matched / no row is selected).
+            1, 2, 0 (draw), or None.
         """
         if row_num is None:
             row_num = self.get_selected_row()
@@ -138,32 +146,36 @@ class FlexibleCv:
             return None
 
         row_top = row_y_tops[row_num - 1]
-        x = int(roi_cfg["x"] * self.factor)
-        y = int((row_top + roi_cfg["y_offset"]) * self.factor)
-        w = int(roi_cfg["w"] * self.factor)
-        h = int(roi_cfg["h"] * self.factor)
-
-        roi = self.frame[y : y + h, x : x + w]
         thr = roi_cfg.get("color_threshold", 25)
         min_px = roi_cfg.get("min_pixels", 5)
 
-        win_count = CvHelper.count_color_in_roi(
-            roi, roi_cfg["win_color"], threshold=thr
-        )
-        lose_count = CvHelper.count_color_in_roi(
-            roi, roi_cfg["lose_color"], threshold=thr
-        )
+        def _sample(cfg, key):
+            x = int(cfg["x"] * self.factor)
+            y = int((row_top + cfg["y_offset"]) * self.factor)
+            w = int(cfg["w"] * self.factor)
+            h = int(cfg["h"] * self.factor)
+            roi = self.frame[y : y + h, x : x + w]
+            return CvHelper.count_color_in_roi(roi, cfg[key], threshold=thr)
 
-        if win_count >= min_px:
-            return 1  # P1 wins
-        if lose_count >= min_px:
-            return 2  # P2 wins
+        p1_win  = _sample(roi_cfg, "win_color")
+        if p1_win >= min_px:
+            return 1
 
-        print(
-            f"could not get winner {win_count} {lose_count} .... {min_px}, returning None"
-        )
-        cv2.imshow("roi with no player", roi)
-        cv2.waitKey(0)
+        p2_cfg = self.layout.get("p2_result_roi")
+        if p2_cfg:
+            p2_win = _sample(p2_cfg, "win_color")
+            if p2_win >= min_px:
+                return 2
+            p1_lose = _sample(roi_cfg, "lose_color")
+            if p1_lose >= min_px:
+                return 0  # draw
+
+        else:
+            p1_lose = _sample(roi_cfg, "lose_color")
+            if p1_lose >= min_px:
+                return 2
+
+        print(f"could not get winner, returning None")
         return None
 
     def get_datetime_from_selected_row(self, row_num=None):
@@ -511,14 +523,17 @@ class FlexibleCv:
 
     def get_round_results(self):
         """Return winning round result icon names in round order.
+        
+        Only useable for Street Fighter 6
 
         Searches both the P1 and P2 icon columns defined by ``round_result_roi``
         in the layout.  For each round, the winner's icon (e.g. ``"p1_victory"``,
-        ``"p2_chip_damage"``) is returned; ``*_loses`` icons are ignored.
+        ``"p2_chip_damage"``) is returned; ``*_loses`` icons are ignored.  Draw
+        rounds return both ``"p1_draw"`` and ``"p2_draw"`` (one per column).
 
         Returns:
-            List of icon name strings (without extension), one per played round,
-            sorted by round order.
+            List of icon name strings (without extension), sorted by round order.
+            Draw rounds contribute two entries (p1_draw, p2_draw) per round.
         """
         cfg = self.layout.get("round_result_roi")
         if not cfg:

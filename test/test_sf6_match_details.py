@@ -24,6 +24,7 @@ def _parse_round_results(path):
 
 test_data = [
     "assets/test_images/sf6/match_details/p1_chip_damage_p1_critical_art.png",
+    "assets/test_images/sf6/match_details/p1_draw_p2_draw_p1_draw_p2_draw.png",
     "assets/test_images/sf6/match_details/p1_over_drive_p2_perfect_p1_victory.png",
     "assets/test_images/sf6/match_details/p1_perfect_p2_victory_p1_victory.png",
     "assets/test_images/sf6/match_details/p2_chip_damage_p2_victory.png",
@@ -41,4 +42,4 @@ def test_get_round_results(filename):
     assert frame is not None, f"Could not load image: {filename}"
     cv.set_frame(frame)
     result = cv.get_round_results()
-    assert result == expected
+    assert result == expected    

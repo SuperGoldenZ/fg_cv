@@ -18,16 +18,29 @@ layout = {
     "row_y_tops": [242, 367, 492, 617, 742],
     "row_y_tops_favorite_players": [242 - 35, 367 - 35, 492 - 35, 617 - 35, 742 - 35],
     "row_y_tops_search": [242, 367, 492, 617, 742],
-    # P1 result text region: blue = P1 wins, grey = P1 loses
+    # Local Replays tab: rows sit 84px higher than the standard ranked list
+    "row_y_tops_local": [158, 283, 408, 533, 658],
+    "row_y_centers_local": [215, 340, 465, 590, 715],
+    # P1 result text region: blue = P1 wins, grey = P1 loses or draw
     "p1_result_roi": {
         "x": 609,
         "y_offset": 42,  # pixels below the row's top edge
         "w": 82,
         "h": 45,
         "win_color": "#0d65d6",  # P1 wins  → blue text
-        "lose_color": "#49494d",  # P1 loses → grey text
+        "lose_color": "#49494d",  # P1 loses or draw → grey text
         "color_threshold": 20,  # ± per channel tolerance
         "min_pixels": 5,  # min matching pixels to confirm
+    },
+    # P2 result text region: blue = P2 wins; absence of blue (with P1 grey) = draw
+    "p2_result_roi": {
+        "x": 720,
+        "y_offset": 42,
+        "w": 120,
+        "h": 45,
+        "win_color": "#0d65d6",  # P2 wins → blue text
+        "color_threshold": 20,
+        "min_pixels": 5,
     },
     # Match-type badge region (right side of each row)
     "match_type_roi": {
