@@ -23,10 +23,7 @@ class VsScreenExtractor:
         self.set_factor()
 
     def set_factor(self):
-        self.factor = 1
-
-        if self.frame.shape[0] == 720:
-            self.factor = 6 / 9
+        self.factor = self.frame.shape[0] / 1080
 
     def is_vs_screen(self, frame=None):
         if frame is not None:

@@ -10,6 +10,21 @@ from fg_cv.flexible_cv import FlexibleCv
 
 
 @pytest.mark.parametrize(
+    "filename, expected",
+    [
+        ("assets/test_images/sf6/replay_menu_list_bottom.png", True),
+        ("assets/test_images/sf6/replay_menu_list_not_bottom.png", False),
+    ],
+)
+def test_is_bottom(filename, expected):
+    cv = FlexibleCv(game="sf6", layout_name="replays_list")
+    frame = cv2.imread(filename)
+    assert frame is not None, f"Could not load image: {filename}"
+    cv.set_frame(frame)
+    assert cv.is_bottom() == expected
+
+
+@pytest.mark.parametrize(
     "filename, expected_row",
     [
         ("assets/test_images/sf6/replays_list_row_01.png", 1),

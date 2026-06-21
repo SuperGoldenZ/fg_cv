@@ -29,14 +29,14 @@ not_match_over_test_data = [
     "assets/test_images/sf6/not_match_over_02.png",
     "assets/test_images/sf6/not_match_over_03.png",
     "assets/test_images/sf6/not_match_over_04.png",
-    "assets/test_images/mai_vs_juri.png",
+    "assets/test_images/sf6/vs_screen/mai_vs_juri.png",
 ]
 
 
 @pytest.mark.parametrize("filename", not_match_over_test_data)
 def test_not_match_over(filename: str):
     print(filename)
-    mo = MatchOverExtractor(game="vf5")
+    mo = MatchOverExtractor(game="sf6")
     frame = cv2.imread(filename)
     mo.set_frame(frame)
     assert not mo.is_match_over_screen()

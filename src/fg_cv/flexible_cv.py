@@ -521,6 +521,22 @@ class FlexibleCv:
             self._match_portrait(p2_gray, combined_p2),
         )
 
+    def is_bottom(self):
+        """Return True if the scroll-down indicator pixel matches the expected colour.
+
+        Reads ``bottom_indicator`` from the layout: a single pixel at (x, y) that
+        is blue when more list entries exist below the current view.
+        """
+        cfg = self.layout.get("bottom_indicator")
+        if not cfg:
+            return False
+
+        x = int(cfg["x"] * self.factor)
+        y = int(cfg["y"] * self.factor)
+        pixel = self.frame[y, x]
+        target_bgr = CvHelper.hex_to_bgr(cfg["color"])
+        return CvHelper.rgb_similarity(pixel, target_bgr) >= cfg.get("threshold", 0.95)
+
     def get_round_results(self):
         """Return winning round result icon names in round order.
         

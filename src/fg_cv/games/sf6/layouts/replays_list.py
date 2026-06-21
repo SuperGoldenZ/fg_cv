@@ -90,4 +90,11 @@ layout = {
         "h": 118,
         "portraits_dir": "assets/sf6/character_portraits",
     },
+    # Blue scroll indicator visible at the bottom of the list when more replays follow
+    "bottom_indicator": {
+        "x": 1831,
+        "y": 961,
+        "color": "#238af8",
+        "threshold": 0.95,
+    },
 }
