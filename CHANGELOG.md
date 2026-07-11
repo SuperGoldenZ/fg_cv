@@ -1,11 +1,22 @@
 # Table of contents
 
+- [1.0.0](#100)
 - [0.0.7](#007)
 - [0.0.6](#006)
 - [0.0.5](#005)
 - [0.0.4](#004)
 - [0.0.3](#003)
 - [0.0.2](#002)
+
+## 1.0.0
+- SF6 replays list screen recognition, with CV/OCR to read the selected row: characters, ring names, MR, winner, date/time, and match type
+[#26](https://github.com/SuperGoldenZ/fg_cv/pull/26)
+
+- SF6 replay details screen recognition and Replay ID OCR
+[#26](https://github.com/SuperGoldenZ/fg_cv/pull/26)
+
+- Detect VF5 online replay download, download complete, and loading screens
+[#26](https://github.com/SuperGoldenZ/fg_cv/pull/26)
 
 ## 0.0.7
 - Now detects when no matches in playerlog
