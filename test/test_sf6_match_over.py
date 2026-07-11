@@ -35,7 +35,9 @@ not_match_over_test_data = [
     "assets/test_images/sf6/not_match_over_02.png",
     "assets/test_images/sf6/not_match_over_03.png",
     "assets/test_images/sf6/not_match_over_04.png",
-    "assets/test_images/mai_vs_juri.png",
+    "assets/test_images/sf6/not_match_over_05.png",
+    "assets/test_images/sf6/vs_screen/mai_vs_juri.png",
+    "assets/test_images/sf6/match_over_false_positive_01.jpg",
 ]
 
 

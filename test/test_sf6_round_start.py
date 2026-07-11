@@ -28,12 +28,12 @@ def test_is_not_found_start():
     assert not round_start.is_round_start_screen()
 
     round_start = RoundStartScreenExtractor(game="sf6")
-    frame = cv2.imread("assets/test_images/cammy_vs_elena.png")
+    frame = cv2.imread("assets/test_images/sf6/vs_screen/cammy_vs_elena.png")
     round_start.set_frame(frame)
     assert not round_start.is_round_start_screen()
 
     round_start = RoundStartScreenExtractor(game="sf6")
-    frame = cv2.imread("assets/test_images/ryu_vs_luke.png")
+    frame = cv2.imread("assets/test_images/sf6/vs_screen/ryu_vs_luke.png")
     round_start.set_frame(frame)
     assert not round_start.is_round_start_screen()
 
