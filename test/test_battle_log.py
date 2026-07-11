@@ -53,6 +53,21 @@ battle_log_no_matches_data = [
         "assets/test_images/vf5/player_data_no_battle_log.png",
         False,
     ],
+    [
+        "battle_log",
+        "assets/test_images/vf5/battle_log_01.png",
+        True,
+    ],
+    [
+        "battle_log",
+        "assets/test_images/vf5/battle_log_02.png",
+        True,
+    ],
+    [
+        "battle_log",
+        "assets/test_images/vf5/battle_log_03.png",
+        True,
+    ],
 ]
 
 
