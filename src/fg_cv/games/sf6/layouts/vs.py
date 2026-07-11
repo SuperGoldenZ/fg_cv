@@ -30,20 +30,6 @@ CHARACTER_WIDTH = 250
 
 layout = {
     "ocr_blocks": {
-        "p1_character": {
-            "x": 101,
-            "y": 824,
-            "w": 285,
-            "h": 60,
-            "colors": P1_CHARACTER_COLORS,
-        },
-        "p2_character": {
-            "x": 1532,
-            "y": 824,
-            "w": 285,
-            "h": 60,
-            "colors": ["#e2e3f8", "#f5e6df"],
-        },
         "p1_ringname": {
             "x": 330,
             "y": 905,
