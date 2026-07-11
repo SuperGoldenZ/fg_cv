@@ -78,5 +78,5 @@ layout = {
         {"x": 1834, "y": 851, "color": "#4f0097"},
         {"x": 1835, "y": 852, "color": "#4f0097"},
     ],
-    "threshold": 6,
+    "threshold": 4,
 }

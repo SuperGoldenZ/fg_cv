@@ -4,6 +4,7 @@ import re
 from datetime import datetime
 from fg_cv.cv_helper import CvHelper
 import cv2
+import numpy as np
 import pytesseract
 
 
@@ -19,6 +20,10 @@ class FlexibleCv:
         self.row_y_tops_key = "row_y_tops"
         if suffix is not None:
             self.row_y_tops_key = f"row_y_tops_{suffix}"
+
+        self.row_y_centers_key = "row_y_centers"
+        if suffix is not None:
+            self.row_y_centers_key = f"row_y_centers_{suffix}"
 
         self.cv_helper = CvHelper()
 
@@ -96,7 +101,7 @@ class FlexibleCv:
         Unselected rows have a dark background (~brightness 30–50); the selected row
         has a bright background (~brightness 229–254), so 150 is a safe midpoint.
         """
-        row_y_centers = self.layout.get("row_y_centers", [])
+        row_y_centers = self.layout.get(self.row_y_centers_key, self.layout.get("row_y_centers", []))
         selected_x = self.layout.get("selected_x", 1296)
         brightness_threshold = self.layout.get("brightness_threshold", 150)
 
@@ -111,19 +116,23 @@ class FlexibleCv:
         return None
 
     def get_winner_from_selected_row(self, row_num=None):
-        """Return the winning player number (1 or 2) for the selected replay row.
+        """Return the winning player number for the selected replay row.
 
-        Examines the P1 result text region (defined by ``p1_result_roi`` in the
-        layout) within the specified row:
-          - Blue  pixels (``win_color``)  → P1 wins  → returns 1
-          - Grey  pixels (``lose_color``) → P2 wins  → returns 2
+        Checks P1 result region (``p1_result_roi``) then P2 result region
+        (``p2_result_roi``) if present:
+          - P1 blue  → P1 wins  → returns 1
+          - P2 blue  → P2 wins  → returns 2
+          - P1 grey, no P2 blue → draw → returns 0
+          - no match → returns None
+
+        When ``p2_result_roi`` is absent the original two-state logic applies
+        (P1 blue → 1, P1 grey → 2).
 
         Args:
-            row_num: 1-based row index to examine; if None, auto-detects via
-                     get_selected_row().
+            row_num: 1-based row index; if None, auto-detects via get_selected_row().
 
         Returns:
-            1, 2, or None (if no colour matched / no row is selected).
+            1, 2, 0 (draw), or None.
         """
         if row_num is None:
             row_num = self.get_selected_row()
@@ -137,32 +146,36 @@ class FlexibleCv:
             return None
 
         row_top = row_y_tops[row_num - 1]
-        x = int(roi_cfg["x"] * self.factor)
-        y = int((row_top + roi_cfg["y_offset"]) * self.factor)
-        w = int(roi_cfg["w"] * self.factor)
-        h = int(roi_cfg["h"] * self.factor)
-
-        roi = self.frame[y : y + h, x : x + w]
         thr = roi_cfg.get("color_threshold", 25)
         min_px = roi_cfg.get("min_pixels", 5)
 
-        win_count = CvHelper.count_color_in_roi(
-            roi, roi_cfg["win_color"], threshold=thr
-        )
-        lose_count = CvHelper.count_color_in_roi(
-            roi, roi_cfg["lose_color"], threshold=thr
-        )
+        def _sample(cfg, key):
+            x = int(cfg["x"] * self.factor)
+            y = int((row_top + cfg["y_offset"]) * self.factor)
+            w = int(cfg["w"] * self.factor)
+            h = int(cfg["h"] * self.factor)
+            roi = self.frame[y : y + h, x : x + w]
+            return CvHelper.count_color_in_roi(roi, cfg[key], threshold=thr)
 
-        if win_count >= min_px:
-            return 1  # P1 wins
-        if lose_count >= min_px:
-            return 2  # P2 wins
+        p1_win  = _sample(roi_cfg, "win_color")
+        if p1_win >= min_px:
+            return 1
 
-        print(
-            f"could not get winner {win_count} {lose_count} .... {min_px}, returning None"
-        )
-        cv2.imshow("roi with no player", roi)
-        cv2.waitKey(0)
+        p2_cfg = self.layout.get("p2_result_roi")
+        if p2_cfg:
+            p2_win = _sample(p2_cfg, "win_color")
+            if p2_win >= min_px:
+                return 2
+            p1_lose = _sample(roi_cfg, "lose_color")
+            if p1_lose >= min_px:
+                return 0  # draw
+
+        else:
+            p1_lose = _sample(roi_cfg, "lose_color")
+            if p1_lose >= min_px:
+                return 2
+
+        print(f"could not get winner, returning None")
         return None
 
     def get_datetime_from_selected_row(self, row_num=None):
@@ -507,3 +520,119 @@ class FlexibleCv:
             self._match_portrait(p1_gray, combined_p1),
             self._match_portrait(p2_gray, combined_p2),
         )
+
+    def is_bottom(self):
+        """Return True if the scroll-down indicator pixel matches the expected colour.
+
+        Reads ``bottom_indicator`` from the layout: a single pixel at (x, y) that
+        is blue when more list entries exist below the current view.
+        """
+        cfg = self.layout.get("bottom_indicator")
+        if not cfg:
+            return False
+
+        x = int(cfg["x"] * self.factor)
+        y = int(cfg["y"] * self.factor)
+        pixel = self.frame[y, x]
+        target_bgr = CvHelper.hex_to_bgr(cfg["color"])
+        return CvHelper.rgb_similarity(pixel, target_bgr) >= cfg.get("threshold", 0.95)
+
+    def get_round_results(self):
+        """Return winning round result icon names in round order.
+        
+        Only useable for Street Fighter 6
+
+        Searches both the P1 and P2 icon columns defined by ``round_result_roi``
+        in the layout.  For each round, the winner's icon (e.g. ``"p1_victory"``,
+        ``"p2_chip_damage"``) is returned; ``*_loses`` icons are ignored.  Draw
+        rounds return both ``"p1_draw"`` and ``"p2_draw"`` (one per column).
+
+        Returns:
+            List of icon name strings (without extension), sorted by round order.
+            Draw rounds contribute two entries (p1_draw, p2_draw) per round.
+        """
+        cfg = self.layout.get("round_result_roi")
+        if not cfg:
+            return []
+
+        icons_dir = cfg["icons_dir"]
+        match_threshold = cfg.get("match_threshold", 0.9)
+        nms_gap = max(1, int(25 * self.factor))
+        x_pad_l = max(1, int(20 * self.factor))
+        x_pad_r = max(1, int(40 * self.factor))
+        y_pad = max(1, int(10 * self.factor))
+
+        p1_templates, p2_templates = {}, {}
+        for fname in os.listdir(icons_dir):
+            if not fname.endswith(".png"):
+                continue
+            stem = fname[:-4]
+            if stem.endswith("_loses"):
+                continue
+            img = cv2.imread(os.path.join(icons_dir, fname))
+            if img is None:
+                continue
+            if self.factor != 1:
+                h, w = img.shape[:2]
+                img = cv2.resize(
+                    img,
+                    (max(1, int(w * self.factor)), max(1, int(h * self.factor))),
+                )
+            if stem.startswith("p1_"):
+                p1_templates[stem] = img
+            elif stem.startswith("p2_"):
+                p2_templates[stem] = img
+
+        p1_x = int(cfg["p1_x"] * self.factor)
+        p2_x = int(cfg["p2_x"] * self.factor)
+        col_y = int(cfg["y"] * self.factor)
+        col_w = int(cfg["w"] * self.factor)
+        col_h = int(cfg["h"] * self.factor)
+
+        p1_det = self._find_winning_icons(
+            self.frame, p1_x, col_y, col_w, col_h, p1_templates,
+            x_pad_l, x_pad_r, y_pad, match_threshold, nms_gap,
+        )
+        p2_det = self._find_winning_icons(
+            self.frame, p2_x, col_y, col_w, col_h, p2_templates,
+            x_pad_l, x_pad_r, y_pad, match_threshold, nms_gap,
+        )
+
+        combined = p1_det + p2_det
+        combined.sort()
+        return [name for _, name in combined]
+
+    @staticmethod
+    def _find_winning_icons(frame, x, y, w, h, templates,
+                            x_pad_l, x_pad_r, y_pad, threshold, nms_gap):
+        """Match icon templates against a padded search region; return [(y_center, name)]."""
+        fh, fw = frame.shape[:2]
+        x_start = max(0, x - x_pad_l)
+        x_end = min(fw, x + w + x_pad_r)
+        y_start = max(0, y - y_pad)
+        y_end = min(fh, y + h + y_pad)
+        roi = frame[y_start:y_end, x_start:x_end]
+
+        candidates = []
+        for name, tmpl in templates.items():
+            th, tw = tmpl.shape[:2]
+            if th > roi.shape[0] or tw > roi.shape[1]:
+                continue
+            res = cv2.matchTemplate(roi, tmpl, cv2.TM_CCOEFF_NORMED)
+            above_y, above_x = np.where(res >= threshold)
+            for y_idx, x_idx in zip(above_y, above_x):
+                y_abs = y_start + y_idx + th // 2
+                candidates.append((float(res[y_idx, x_idx]), y_abs, name))
+
+        candidates.sort(reverse=True)
+        kept = []
+        suppressed = set()
+        for i, (sc, yy, nm) in enumerate(candidates):
+            if i in suppressed:
+                continue
+            kept.append((yy, nm))
+            for j, (sc2, yy2, nm2) in enumerate(candidates):
+                if j != i and j not in suppressed and abs(yy2 - yy) < nms_gap:
+                    suppressed.add(j)
+        kept.sort()
+        return kept

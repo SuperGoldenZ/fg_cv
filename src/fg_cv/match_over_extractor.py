@@ -50,4 +50,20 @@ class MatchOverExtractor:
             if CvHelper.rgb_similarity(pixel_color, target_bgr) >= 0.95:
                 count += 1
 
-        return count >= self.layout["threshold"]
+        if count < self.layout["threshold"]:
+            return False
+
+        for color in self.layout.get("unexpected_colors", []):
+            if self.factor == 1:
+                pixel_color = self.frame[color["y"], color["x"]]
+            else:
+                pixel_color = self.frame[
+                    int(color["y"] * self.factor), int(color["x"] * self.factor)
+                ]
+
+            target_bgr = CvHelper.hex_to_bgr(color["color"])
+
+            if CvHelper.rgb_similarity(pixel_color, target_bgr) >= 0.95:
+                return False
+
+        return True
