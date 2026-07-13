@@ -1,5 +1,6 @@
 # Table of contents
 
+- [1.0.1](#101)
 - [1.0.0](#100)
 - [0.0.7](#007)
 - [0.0.6](#006)
@@ -7,6 +8,22 @@
 - [0.0.4](#004)
 - [0.0.3](#003)
 - [0.0.2](#002)
+
+## 1.0.1
+- SF6 match details round result extraction via template matching, including chip damage, critical art, overdrive, perfect, super art, timeout, and draw icons
+[#29](https://github.com/SuperGoldenZ/fg_cv/pull/29)
+
+- SF6 draw detection in match details and replay list
+[#29](https://github.com/SuperGoldenZ/fg_cv/pull/29)
+
+- SF6 replay list `is_bottom` detection (whether the selected row is the last in the list)
+[#29](https://github.com/SuperGoldenZ/fg_cv/pull/29)
+
+- Fixed SF6 match over screen false positive
+[#29](https://github.com/SuperGoldenZ/fg_cv/pull/29)
+
+- Detect VF5 delete-replay screens (delete selected in replay submenu, delete confirmation yes/no)
+[#29](https://github.com/SuperGoldenZ/fg_cv/pull/29)
 
 ## 1.0.0
 - SF6 replays list screen recognition, with CV/OCR to read the selected row: characters, ring names, MR, winner, date/time, and match type
