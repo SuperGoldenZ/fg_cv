@@ -1,18 +1,19 @@
-# General
+# Round-start intro screen: P1/P2 "recent history" box is only shown while
+# the round-intro freeze / "ROUND N" text is on screen, so its solid red
+# (P1) and blue (P2) bands are a much more reliable signal than generic
+# HUD elements (black corners, name banners, health bar) that are also
+# present during ordinary gameplay and previously caused false positives.
 layout = {
     "expected_colors": [
-        {"x": 132, "y": 138, "color": "#000000"},
-        {"x": 1772, "y": 111, "color": "#000000"},
-        {"x": 279, "y": 107, "color": "#73040e"},
-        {"x": 279, "y": 107, "color": "#73040e"},
-        {"x": 1671, "y": 105, "color": "#040b84"},
-        {"x": 99, "y": 786, "color": "#bc0000" },
-        {"x": 99, "y": 786, "color": "#bc0000" },
-        {"x": 1581, "y": 786, "color": "#1421c8"},
-        {"x": 255, "y": 90, "color": "#42c601"},
-        {"x": 255, "y": 90, "color": "#42c601"},
-        {"x": 1677, "y": 92, "color": "#41c300"},        
+        {"x": 120, "y": 785, "color": "#b00002"},
+        {"x": 180, "y": 785, "color": "#b00002"},
+        {"x": 240, "y": 785, "color": "#b00002"},
+        {"x": 300, "y": 785, "color": "#b00002"},
+        {"x": 1600, "y": 780, "color": "#1019cf"},
+        {"x": 1650, "y": 780, "color": "#1019cf"},
+        {"x": 1700, "y": 780, "color": "#1019cf"},
+        {"x": 1750, "y": 780, "color": "#1019cf"},
     ],
-    "unexpected_colors": [        
-    ],
+    "unexpected_colors": [],
+    "threshold": 6,
 }

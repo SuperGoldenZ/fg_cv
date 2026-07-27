@@ -14,3 +14,4 @@ from fg_cv.flexible_cv import FlexibleCv
 from fg_cv.round_start_screen_extractor import RoundStartScreenExtractor
 from fg_cv.combo_cv import ComboCv
 from fg_cv.lifebar_cv import LifebarCv
+from fg_cv.draw_screen_extractor import DrawScreenExtractor
