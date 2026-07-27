@@ -67,4 +67,4 @@ class RoundStartScreenExtractor:
             return False
 
         self.frame = None
-        return count >= 5
+        return count >= self.layout.get("threshold", 5)
