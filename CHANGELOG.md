@@ -1,5 +1,6 @@
 # Table of contents
 
+- [1.1.0](#110)
 - [1.0.1](#101)
 - [1.0.0](#100)
 - [0.0.7](#007)
@@ -8,6 +9,19 @@
 - [0.0.4](#004)
 - [0.0.3](#003)
 - [0.0.2](#002)
+
+## 1.1.0
+- Detect VF5 online replay download screens where the Download option is highlighted but disabled
+[#32](https://github.com/SuperGoldenZ/fg_cv/pull/32)
+
+- New `DrawScreenExtractor` for detecting the VF5 round-end DRAW banner
+[#33](https://github.com/SuperGoldenZ/fg_cv/pull/33)
+
+- Fixed VF5 round start screen false positives by matching on the round-intro P1/P2 history bands
+[#33](https://github.com/SuperGoldenZ/fg_cv/pull/33)
+
+- Round start layouts can now set their own `threshold` instead of the hardcoded value of 5
+[#33](https://github.com/SuperGoldenZ/fg_cv/pull/33)
 
 ## 1.0.1
 - SF6 match details round result extraction via template matching, including chip damage, critical art, overdrive, perfect, super art, timeout, and draw icons
