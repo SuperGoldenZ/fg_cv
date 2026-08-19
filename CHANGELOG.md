@@ -1,5 +1,6 @@
 # Table of contents
 
+- [1.2.0](#120)
 - [1.1.0](#110)
 - [1.0.1](#101)
 - [1.0.0](#100)
@@ -9,6 +10,13 @@
 - [0.0.4](#004)
 - [0.0.3](#003)
 - [0.0.2](#002)
+
+## 1.2.0
+- SF6 replay list rows now recognize the new character Yasmine, via P1 and P2 portrait references
+[#36](https://github.com/SuperGoldenZ/fg_cv/pull/36)
+
+- Portrait references smaller than the region of interest are skipped with a warning instead of raising from `cv2.matchTemplate`
+[#36](https://github.com/SuperGoldenZ/fg_cv/pull/36)
 
 ## 1.1.0
 - Detect VF5 online replay download screens where the Download option is highlighted but disabled
