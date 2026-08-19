@@ -466,9 +466,19 @@ def test_get_ringnames_from_selected_row(filename, expected_p1_ringname, expecte
             "ingrid",
         ),
         (
+            "assets/test_images/sf6/replay_list_row_01/p1_yasmine_wins_vs_p2_luke.png",
+            "yasmine",
+            "luke",
+        ),
+        (
             "assets/test_images/sf6/replay_list_row_01/p1_zangief_loses_vs_p2_elena.png",
             "zangief",
             "elena",
+        ),
+        (
+            "assets/test_images/sf6/replay_list_row_01/p1_zangief_loses_vs_p2_yasmine.png",
+            "zangief",
+            "yasmine",
         ),
         (
             "assets/test_images/sf6/replay_list_row_01/p1_zangief_win_vs_p2_kimberly.png",

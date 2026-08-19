@@ -332,8 +332,18 @@ class FlexibleCv:
         if not refs_combined:
             return None
         q_eq = cv2.equalizeHist(query_gray)
+        qh, qw = q_eq.shape[:2]
         best_char, best_score = None, -99.0
         for char, (ref_eq, penalty) in refs_combined.items():
+            rh, rw = ref_eq.shape[:2]
+            # matchTemplate requires the reference to cover the whole ROI; a
+            # badly cropped reference is skipped rather than crashing every lookup.
+            if rh < qh or rw < qw:
+                print(
+                    f"WARN: portrait reference '{char}' is {rw}x{rh}, "
+                    f"smaller than the {qw}x{qh} ROI — skipping"
+                )
+                continue
             score = (
                 float(cv2.matchTemplate(q_eq, ref_eq, cv2.TM_CCOEFF_NORMED)[0, 0])
                 - penalty
