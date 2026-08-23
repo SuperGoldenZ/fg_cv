@@ -1,5 +1,6 @@
 # Table of contents
 
+- [Unreleased](#unreleased)
 - [1.2.0](#120)
 - [1.1.0](#110)
 - [1.0.1](#101)
@@ -10,6 +11,13 @@
 - [0.0.4](#004)
 - [0.0.3](#003)
 - [0.0.2](#002)
+
+## Unreleased
+- Fixed an SF6 match over screen false positive during super/critical art flashes, which
+paint the same navy and near-white palette over the same region as the Play Again dialog.
+The layout no longer double-counts a duplicated pixel probe, adds probes on the parts of
+the dialog panel that stay constant while the highlight sweep animates, and raises the
+threshold to 10 of 15
 
 ## 1.2.0
 - SF6 replay list rows now recognize the new character Yasmine, via P1 and P2 portrait references
