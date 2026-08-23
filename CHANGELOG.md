@@ -1,5 +1,6 @@
 # Table of contents
 
+- [1.2.1](#121)
 - [1.2.0](#120)
 - [1.1.0](#110)
 - [1.0.1](#101)
@@ -10,6 +11,13 @@
 - [0.0.4](#004)
 - [0.0.3](#003)
 - [0.0.2](#002)
+
+## 1.2.1
+- Fixed an SF6 match over screen false positive on super and critical art flashes, which paint the Play Again dialog's navy and near-white palette over the same region of the screen
+[#39](https://github.com/SuperGoldenZ/fg_cv/pull/39)
+
+- The SF6 match over layout no longer counts a duplicated pixel probe twice, and matches on parts of the dialog panel that stay constant while the highlight sweep animates
+[#39](https://github.com/SuperGoldenZ/fg_cv/pull/39)
 
 ## 1.2.0
 - SF6 replay list rows now recognize the new character Yasmine, via P1 and P2 portrait references
