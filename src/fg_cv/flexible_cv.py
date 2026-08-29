@@ -547,6 +547,232 @@ class FlexibleCv:
         target_bgr = CvHelper.hex_to_bgr(cfg["color"])
         return CvHelper.rgb_similarity(pixel, target_bgr) >= cfg.get("threshold", 0.95)
 
+    def _player_row_state(self, roi_cfg, cfg):
+        """Classify one "View ...'s Details" row as highlighted, dim or neither.
+
+        ``cfg`` supplies the mean-BGR bands: ``highlight_bgr_min`` /
+        ``highlight_bgr_max`` for the row that currently carries the highlight,
+        and ``dim_bgr_max`` for a row that does not.
+        """
+        x = int(roi_cfg["x"] * self.factor)
+        y = int(roi_cfg["y"] * self.factor)
+        w = int(roi_cfg["w"] * self.factor)
+        h = int(roi_cfg["h"] * self.factor)
+
+        roi = self.frame[y:y + h, x:x + w]
+        if roi.size == 0:
+            return None
+
+        mean = roi.reshape(-1, 3).mean(axis=0)
+
+        lo = cfg["highlight_bgr_min"]
+        hi = cfg["highlight_bgr_max"]
+        if all(lo[i] <= mean[i] <= hi[i] for i in range(3)):
+            return "highlighted"
+
+        dim = cfg["dim_bgr_max"]
+        if all(mean[i] <= dim[i] for i in range(3)):
+            return "dim"
+
+        return None
+
+    def get_highlighted_player_row(self, frame=None):
+        """Return 1 or 2 for which "View <ringname>'s Details" row is highlighted.
+
+        Reads ``player_details_roi`` from the layout: one ROI per player over the
+        left edge of the two rows, plus the mean-BGR bands that define what
+        "highlighted" looks like for the screen the layout describes.  Requires
+        exactly one row in the highlight band and every other row dark, so a
+        screen where neither (or both) applies returns None.
+        """
+        if frame is not None:
+            self.set_frame(frame)
+
+        if self.frame is None:
+            raise Exception("Frame not set")
+
+        cfg = self.layout.get("player_details_roi")
+        if not cfg:
+            return None
+
+        states = {
+            player: self._player_row_state(roi_cfg, cfg)
+            for player, roi_cfg in cfg["rois"].items()
+        }
+
+        highlighted = [p for p, state in states.items() if state == "highlighted"]
+        if len(highlighted) != 1:
+            return None
+
+        player = highlighted[0]
+        if not all(
+            state == "dim" for p, state in states.items() if p != player
+        ):
+            return None
+
+        return player
+
+    def get_player_details_player(self, frame=None):
+        """Return 1 or 2 for whose Fighter Profile is open, or None if not on it.
+
+        For the ``sf6`` ``player_details`` layout.  While the Fighter Profile
+        overlay is up the replay details panel behind it is dimmed, so the row
+        that was chosen reads as dimmed-highlighted blue and the other as dark.
+        A bright row means the menu itself still has focus -- see
+        :meth:`get_selected_details_menu_player`.
+        """
+        return self.get_highlighted_player_row(frame=frame)
+
+    def is_player_details_screen(self, frame=None):
+        """Return True if the SF6 Fighter Profile ("player details") menu is open."""
+        return self.get_player_details_player(frame=frame) is not None
+
+    def get_selected_details_menu_player(self, frame=None):
+        """Return 1 or 2 for which "View <ringname>'s Details" menu item is selected.
+
+        For the ``sf6`` ``details_selected`` layout.  On the replay details menu
+        the row under the cursor is drawn as a bright near-white bar; every other
+        row stays dark.  Returns None when the cursor is on some other row (Watch
+        Replay, Add to Favorites, ...) or the menu is not on screen at all.
+        """
+        return self.get_highlighted_player_row(frame=frame)
+
+    def is_details_menu_selected(self, frame=None):
+        """Return True if either "View <ringname>'s Details" menu item is selected."""
+        return self.get_selected_details_menu_player(frame=frame) is not None
+
+    def matches_roi_bands(self, section="menu_item_roi", frame=None):
+        """Return True if every horizontal band of an ROI is within its BGR range.
+
+        Reads ``section`` from the layout: an ROI (``x``, ``y``, ``w``, ``h``) plus
+        a list of ``bands``, each with ``y0`` / ``y1`` offsets relative to the top
+        of the ROI and a ``bgr_min`` / ``bgr_max`` range the band's mean BGR must
+        fall inside.  Checking bands rather than the ROI as a whole keeps the
+        vertical structure of a highlighted menu item, which a single mean would
+        throw away.
+        """
+        if frame is not None:
+            self.set_frame(frame)
+
+        if self.frame is None:
+            raise Exception("Frame not set")
+
+        cfg = self.layout.get(section)
+        if not cfg:
+            return False
+
+        x = int(cfg["x"] * self.factor)
+        y = int(cfg["y"] * self.factor)
+        w = int(cfg["w"] * self.factor)
+        h = int(cfg["h"] * self.factor)
+
+        roi = self.frame[y:y + h, x:x + w]
+        if roi.shape[0] != h or roi.shape[1] != w:
+            return False
+
+        for band in cfg["bands"]:
+            y0 = int(band["y0"] * self.factor)
+            y1 = int(band["y1"] * self.factor)
+            strip = roi[y0:y1]
+            if strip.size == 0:
+                return False
+
+            mean = strip.reshape(-1, 3).mean(axis=0)
+            lo = band["bgr_min"]
+            hi = band["bgr_max"]
+            if not all(lo[i] <= mean[i] <= hi[i] for i in range(3)):
+                return False
+
+        return True
+
+    def is_view_fighter_profile_selected(self, frame=None):
+        """Return True if the SF6 "Details" popup has "View Fighter Profile" selected.
+
+        For the ``sf6`` ``view_fighter_profile_selected`` layout.  This is the
+        popup between choosing "View <ringname>'s Details" on the replay details
+        menu and the Fighter Profile itself opening.
+        """
+        return self.matches_roi_bands(frame=frame)
+
+    def _binarize_outlined_text(self, cfg):
+        """Return the ROI as black text on white, with the background dropped.
+
+        The SF6 banner text is white with a dark outline over artwork that
+        changes per player, so keeping only pixels whose every channel is at
+        least ``text_min_channel`` isolates the glyphs no matter what is behind
+        them.  The result is scaled up by ``scale`` because pytesseract reads
+        these glyphs poorly at their native size.
+        """
+        x = int(cfg["x"] * self.factor)
+        y = int(cfg["y"] * self.factor)
+        w = int(cfg["w"] * self.factor)
+        h = int(cfg["h"] * self.factor)
+
+        roi = self.frame[y:y + h, x:x + w]
+        if roi.size == 0:
+            return None
+
+        mask = roi.min(axis=2) >= cfg.get("text_min_channel", 170)
+        binary = np.where(mask[..., None], 0, 255).astype(np.uint8)
+
+        scale = cfg.get("scale", 3)
+        if scale != 1:
+            binary = cv2.resize(
+                binary, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC
+            )
+
+        return binary
+
+    def get_user_code(self, frame=None):
+        """Return the ten digit SF6 user code as a string, or None.
+
+        Reads ``user_code_roi`` from the layout, which frames the
+        "User Code: ##########" line of the Fighter Profile banner.  The label
+        and the digits are OCR'd separately so the digits can use a digits-only
+        whitelist; the label is only a guard and is not part of the result.
+
+        Returns None when the label does not read as "User Code" or the digits
+        do not come back as exactly ten of them - i.e. when this is not the
+        Fighter Profile screen, or the read is not trustworthy.
+        """
+        if frame is not None:
+            self.set_frame(frame)
+
+        if self.frame is None:
+            raise Exception("Frame not set")
+
+        cfg = self.layout.get("user_code_roi")
+        if not cfg:
+            return None
+
+        binary = self._binarize_outlined_text(cfg)
+        if binary is None:
+            return None
+
+        scale = cfg.get("scale", 3)
+
+        def _slice(sub):
+            x0 = int(sub["x0"] * self.factor * scale)
+            x1 = int(sub["x1"] * self.factor * scale)
+            return binary[:, x0:x1]
+
+        label_cfg = cfg["label"]
+        label = pytesseract.image_to_string(_slice(label_cfg), config="--psm 7")
+        if label_cfg["expected"] not in re.sub(r"[^a-z]", "", label.lower()):
+            return None
+
+        digits_cfg = cfg["digits"]
+        digits = pytesseract.image_to_string(
+            _slice(digits_cfg),
+            config="--psm 7 -c tessedit_char_whitelist=0123456789",
+        )
+        digits = re.sub(r"\D", "", digits)
+
+        if len(digits) != digits_cfg["length"]:
+            return None
+
+        return digits
+
     def get_round_results(self):
         """Return winning round result icon names in round order.
         

@@ -1,5 +1,6 @@
 # Table of contents
 
+- [1.3.0](#130)
 - [1.2.1](#121)
 - [1.2.0](#120)
 - [1.1.0](#110)
@@ -11,6 +12,19 @@
 - [0.0.4](#004)
 - [0.0.3](#003)
 - [0.0.2](#002)
+
+## 1.3.0
+- Detect the SF6 Fighter Profile ("player details") screen, and which of the two players' profiles is open, by reading the dimmed replay details panel behind the overlay rather than the overlay itself, which is skinned per player
+[#41](https://github.com/SuperGoldenZ/fg_cv/pull/41)
+
+- Detect whether a `View <ringname>'s Details` row is the selected item on the SF6 replay details menu, before the profile opens
+[#41](https://github.com/SuperGoldenZ/fg_cv/pull/41)
+
+- Detect "View Fighter Profile" being selected in the SF6 Details popup, matching the horizontal bands of the selection bar so that bright patches on unrelated screens are not false positives
+[#41](https://github.com/SuperGoldenZ/fg_cv/pull/41)
+
+- New `FlexibleCv.get_user_code()` reads the ten digit SF6 user code from the Fighter Profile banner, isolating the white text from the per-player banner art and reading the label and the digits separately so the digits can use a digits-only whitelist
+[#41](https://github.com/SuperGoldenZ/fg_cv/pull/41)
 
 ## 1.2.1
 - Fixed an SF6 match over screen false positive on super and critical art flashes, which paint the Play Again dialog's navy and near-white palette over the same region of the screen
