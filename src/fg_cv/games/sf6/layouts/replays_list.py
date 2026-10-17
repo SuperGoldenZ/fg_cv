@@ -89,6 +89,11 @@ layout = {
         "w": 145,
         "h": 118,
         "portraits_dir": "assets/sf6/character_portraits",
+        # Best NCC score below this means no reference matches (e.g. a new
+        # character without a portrait yet) and "Unknown" is returned instead.
+        # Known characters score >= 0.83; Arjun scored <= 0.77 before his
+        # reference portrait was added.
+        "min_score": 0.80,
     },
     # Blue scroll indicator visible at the bottom of the list when more replays follow
     "bottom_indicator": {
