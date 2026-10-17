@@ -327,8 +327,12 @@ class FlexibleCv:
         return self._portrait_ref_cache[key]
 
     @staticmethod
-    def _match_portrait(query_gray, refs_combined):
-        """Return the best-matching character name using histogram-equalised NCC."""
+    def _match_portrait(query_gray, refs_combined, min_score=None):
+        """Return the best-matching character name using histogram-equalised NCC.
+
+        Returns ``"Unknown"`` when ``min_score`` is set and no reference scores
+        at least that high.
+        """
         if not refs_combined:
             return None
         q_eq = cv2.equalizeHist(query_gray)
@@ -351,6 +355,8 @@ class FlexibleCv:
             if score > best_score:
                 best_score = score
                 best_char = char
+        if best_char is not None and min_score is not None and best_score < min_score:
+            return "Unknown"
         return best_char
 
     def get_ringnames_from_selected_row(self, row_num=None):
@@ -478,7 +484,8 @@ class FlexibleCv:
         Returns:
             ``(p1_char, p2_char)`` tuple of lowercase character name strings, or
             ``(None, None)`` if the row cannot be located or no reference images
-            are found.
+            are found.  A side whose best score is below ``portrait_roi["min_score"]``
+            (if set) is ``"Unknown"``.
         """
         if row_num is None:
             row_num = self.get_selected_row()
@@ -526,9 +533,10 @@ class FlexibleCv:
             self.frame[y : y + h, p2_x : p2_x + w], cv2.COLOR_BGR2GRAY
         )
 
+        min_score = cfg.get("min_score")
         return (
-            self._match_portrait(p1_gray, combined_p1),
-            self._match_portrait(p2_gray, combined_p2),
+            self._match_portrait(p1_gray, combined_p1, min_score),
+            self._match_portrait(p2_gray, combined_p2, min_score),
         )
 
     def is_bottom(self):
