@@ -1,5 +1,6 @@
 # Table of contents
 
+- [1.4.0](#140)
 - [1.3.0](#130)
 - [1.2.1](#121)
 - [1.2.0](#120)
@@ -12,6 +13,13 @@
 - [0.0.4](#004)
 - [0.0.3](#003)
 - [0.0.2](#002)
+
+## 1.4.0
+- SF6 replay list character detection returns `"Unknown"` when no reference portrait matches closely enough (`portrait_roi["min_score"]`), instead of the closest wrong character, so new characters without a reference portrait are not misreported
+[#44](https://github.com/SuperGoldenZ/fg_cv/pull/44)
+
+- Detect Arjun on the SF6 replay list screen
+[#44](https://github.com/SuperGoldenZ/fg_cv/pull/44)
 
 ## 1.3.0
 - Detect the SF6 Fighter Profile ("player details") screen, and which of the two players' profiles is open, by reading the dimmed replay details panel behind the overlay rather than the overlay itself, which is skinned per player
