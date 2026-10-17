@@ -485,6 +485,26 @@ def test_get_ringnames_from_selected_row(filename, expected_p1_ringname, expecte
             "zangief",
             "kimberly",
         ),
+        (
+            "assets/test_images/sf6/replay_list_row_01/p1_arjun_loses_vs_p2_deejay.png",
+            "arjun",
+            "deejay",
+        ),
+        (
+            "assets/test_images/sf6/replay_list_row_01/p1_arjun_wins_vs_p2_deejay.png",
+            "arjun",
+            "deejay",
+        ),
+        (
+            "assets/test_images/sf6/replay_list_row_01/p1_viper_loses_vs_p2_arjun.png",
+            "viper",
+            "arjun",
+        ),
+        (
+            "assets/test_images/sf6/replay_list_row_01/p1_ed_wins_vs_p2_arjun.png",
+            "ed",
+            "arjun",
+        ),
     ],
 )
 def test_get_characters_from_selected_row(filename, expected_p1, expected_p2):
